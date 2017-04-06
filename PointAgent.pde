@@ -1,14 +1,19 @@
 class PointAgent {
+  
   PVector position;
   PVector velocity;
   PVector acceleration;
   float maxSpeed;
-  boolean moves;
-  PointAgent target;
   float maxForce;
+  
+  //weights
   float sHWeight;
   float sWeight;
-
+  
+  //misc
+  boolean moves;
+  PointAgent target;
+  ArrayList<PointAgent> visibleAgents;
 
   PointAgent(PVector _position) {
     position = _position;
@@ -18,8 +23,11 @@ class PointAgent {
     velocity = new PVector(0, 0);
     maxSpeed = 0.5;
     maxForce = 0.1;
+    
     sHWeight = 1;
     sWeight = 5;
+    
+    visibleAgents = new ArrayList<PointAgent>();
   }
   PointAgent(float x, float y) {
     position = new PVector();

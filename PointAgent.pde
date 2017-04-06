@@ -2,18 +2,24 @@ class PointAgent {
   PVector position;
   PVector velocity;
   PVector acceleration;
+  float maxSpeed;
   boolean moves;
   PointAgent target;
-  float springStrength;
+  float maxForce;
+  float sHWeight;
+  float sWeight;
 
 
   PointAgent(PVector _position) {
     position = _position;
     target = new PointAgent();
     moves = true;
-    springStrength = 1;
     acceleration = new PVector(0, 0);
     velocity = new PVector(0, 0);
+    maxSpeed = 0.5;
+    maxForce = 0.1;
+    sHWeight = 1;
+    sWeight = 5;
   }
   PointAgent(float x, float y) {
     position = new PVector();
@@ -23,6 +29,10 @@ class PointAgent {
     moves = true;
     acceleration = new PVector(0, 0);
     velocity = new PVector(0, 0);
+    maxSpeed = 0.5;
+    maxForce = 0.5;
+    sHWeight = 1;
+    sWeight = 5;
   }
 
   PointAgent() {
@@ -30,35 +40,42 @@ class PointAgent {
     moves = false;
     acceleration = new PVector(0, 0);
     velocity = new PVector(0, 0);
+    maxSpeed = 0.5;
+    maxForce = 0.1;
   }
 
-  PVector spring(PVector _origin, float _offSet) {
-    PVector springForce = new PVector();
-    float equilibriumPosition = 1.80278 * _offSet;
-    float currentDisplacement = dist(position.x, position.y, _origin.x, _origin.y);
-    //F = -kxp[
-    //F = ma
-    //just let m = 1 for the moment
-    //F = a
-    //acceleration of point agent = F
-    float x = currentDisplacement - equilibriumPosition;
-    springForce.setMag(springStrength * x);
-    float rise = _origin.y - position.y;
-    float run = _origin.x - position.x;
-    float orientation = atan(rise/run);
-    springForce.rotate(orientation);
-    println(springForce);
-    return springForce;
+  void seekHome(PVector _origin, float _offSet) {
+    PVector target = new PVector(_origin.x + _offSet, _origin.y + 1.5 * _offSet);
+    PVector desired = PVector.sub(target, position);
+    float d = desired.mag();
+    if (d < 100) {
+      float m = map(d, 0, 100, 0, maxSpeed);
+      desired.setMag(m);
+    } else {
+      desired.setMag(maxSpeed);
+    }
+    PVector steer = PVector.sub(desired, velocity);
+    steer.limit(maxForce);
+    applyForce(steer.mult(sHWeight));
   }
-  void resolveForces(PVector _origin, float _offset) {
-    PVector springForce = new PVector();
-    springForce = spring(_origin, _offset);
-    acceleration = springForce.mult(1);
+
+  void seek(PVector target) {
+    PVector desired = PVector.sub(target, position);
+    desired.setMag(maxSpeed);
+    PVector steer = PVector.sub(desired, velocity);
+    steer.limit(maxForce);  // Limit to maximum steering force
+    //println(steer);
+    applyForce(steer.mult(sWeight));
   }
-  void move(PVector _origin, float _offset) {
-    resolveForces(_origin, _offset);
-    velocity = velocity.add(acceleration); 
-    position.x = velocity.x + position.x;
-    position.y = velocity.y + position.y;
+  
+  
+  void update() {
+    velocity.add(acceleration);
+    velocity.limit(maxSpeed);
+    position.add(velocity);
+    acceleration.mult(0);
+  }
+  void applyForce(PVector force) {
+    acceleration.add(force);
   }
 }

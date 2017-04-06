@@ -6,6 +6,6 @@ void setup () {
 }
 
 void draw () {
-  a.move();
-  a.display();
+  background(51);
+  a.update();
 }

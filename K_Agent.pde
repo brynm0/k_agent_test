@@ -37,9 +37,13 @@ class K_Agent {
     yAvg = yAvg / arms.length;
     midPoint = new PVector(xAvg, yAvg);
   }
-   void move() {
+   void update() {
+     calculateMidPoint();
     for (PointAgent b : arms) {
-     b.move(origin, offSet); 
+     b.seekHome(midPoint, offSet); 
+//     b.seek(a);
+     b.update();
     }
+    display();
    }
 }

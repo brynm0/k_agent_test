@@ -8,42 +8,56 @@ class K_Agent {
   float offSet;
 
   K_Agent(PVector _origin, float _offSet) {
+    midPoint = _origin;
     origin = _origin;
     armAngle = radians(60);
     offSet = _offSet;
+    moves = true;
     init();
   }
   void init() {
     arms = new PointAgent[4];
-    arms[0] = new PointAgent(origin.x + offSet, origin.y + 1.5 * offSet);
-    arms[1] = new PointAgent(origin.x - offSet, origin.y + 1.5 * offSet);
-    arms[2] = new PointAgent(origin.x - offSet, origin.y - 1.5 * offSet);
-    arms[3] = new PointAgent(origin.x + offSet, origin.y - 1.5 * offSet);
+    arms[0] = new PointAgent(origin.x + offSet, origin.y + 1.5 * offSet, origin.z);
+    arms[1] = new PointAgent(origin.x - offSet, origin.y + 1.5 * offSet, origin.z);
+    arms[2] = new PointAgent(origin.x - offSet, origin.y - 1.5 * offSet, origin.z);
+    arms[3] = new PointAgent(origin.x + offSet, origin.y - 1.5 * offSet, origin.z);
   }
   void display() {
-      calculateMidPoint();
+    calculateMidPoint();
     for (PointAgent a : arms) {
-      line( a.position.x, a.position.y, midPoint.x, midPoint.y);
+      line( a.position.x, a.position.y, a.position.z, midPoint.x, midPoint.y, midPoint.z);
     }
   }
   void calculateMidPoint () {
-    float xAvg = 0;
-    float yAvg = 0;
-    for (int i = 0; i < arms.length; i++) {
-      xAvg = xAvg + arms[i].position.x;
-      yAvg = yAvg + arms[i].position.y;
+    PVector result = new PVector(0, 0, 0);
+    int count = 0;
+    for ( PointAgent agent : arms ) {
+      result = result.add(agent.position);
+      count++;
     }
-    xAvg = xAvg / arms.length;
-    yAvg = yAvg / arms.length;
-    midPoint = new PVector(xAvg, yAvg);
+    result.mult(1.0f / count);
+    midPoint = result;
+  } 
+
+  void freezeToggle() {
+    for (PointAgent p : arms) {
+      if (p.moves == true) { 
+        p.moves = false;
+      } else if (p.moves == false) {
+        p.moves = true;
+      }
+    }
   }
-   void update() {
-     calculateMidPoint();
+
+  void update(K_Agent[] agents) {
+    calculateMidPoint();
     for (PointAgent b : arms) {
-     b.seekHome(midPoint, offSet); 
-//     b.seek(a);
-     b.update();
+      b.expansion(midPoint, offSet); 
+      //   b.seek(a);
+      b.cohesion(agents);
+
+      b.update();
     }
     display();
-   }
+  }
 }

@@ -22,16 +22,16 @@ class PointAgent {
   PointAgent(PVector _position) {
     position = _position;
     target = new PointAgent();
-    moves = true;
+    moves = false;
     acceleration = new PVector(0, 0, 0);
     velocity = new PVector(0, 0, 0);
     maxSpeed = 0.5;
     maxForce = 0.5;
     joinedNumber = 1;
 
-    expWeight = random(5);
-    seekWeight = random(5);
-    cohesionWeight = random(5);
+    expWeight = random(2);
+    //seekWeight = random(5);
+    cohesionWeight = random(1);
     avoidanceWeight = random(5);
 
 
@@ -40,7 +40,7 @@ class PointAgent {
   PointAgent(float x, float y, float z) {
     position = new PVector(x, y, z);
     target = new PointAgent();
-    moves = true;
+    moves = false;
     acceleration = new PVector(0, 0, 0);
     velocity = new PVector(0, 0, 0);
     maxSpeed = 0.5;
@@ -53,7 +53,7 @@ class PointAgent {
     avoidanceWeight = random(5);
 
 
-    viewRadius = random(50,100);
+    viewRadius = random(50, 100);
     //viewAngle = radians(10);
   }
 
@@ -67,19 +67,21 @@ class PointAgent {
   }
 
   void expansion(PVector _origin, float _offSet) {
-    PVector target = new PVector(_origin.x + _offSet, _origin.y + 1.5 * _offSet, _origin.z);
-    PVector desired = PVector.sub(target, position);
-    float d = desired.mag();
-    if (d < 100) {
-      float m = map(d, 0, 100, 0, maxSpeed);
-      desired.setMag(m);
-    } else {
-      desired.setMag(maxSpeed);
+    if (moves == true) {
+      PVector target = new PVector(_origin.x + _offSet, _origin.y + 1.5 * _offSet, _origin.z);
+      PVector desired = PVector.sub(target, position);
+      float d = desired.mag();
+      if (d < 100) {
+        float m = map(d, 0, 100, 0, maxSpeed);
+        desired.setMag(m);
+      } else {
+        desired.setMag(maxSpeed);
+      }
+      PVector steer = PVector.sub(desired, velocity);
+      steer.mult(-1);
+      steer.limit(maxForce);
+      applyForce(steer.mult(expWeight));
     }
-    PVector steer = PVector.sub(desired, velocity);
-    steer.mult(-1);
-    steer.limit(maxForce);
-    applyForce(steer.mult(expWeight));
   }
 
   void seek(PVector target) {
@@ -101,7 +103,7 @@ class PointAgent {
           result = result.add(agent.position);
           neighbourCount++;
         } 
-        if (isNeighbour(agents[i].arms[j], agents[i].arms) == true && dist( agents[i].arms[j].position.x, agents[i].arms[j].position.y, position.x, position.y) < 5 && joinedNumber < 3) {
+        if (isNeighbour(agents[i].arms[j], agents[i].arms) == true && dist( agents[i].arms[j].position.x, agents[i].arms[j].position.y, position.x, position.y) < 0.5 && joinedNumber < 3) {
           //  boolean b = isNeighbour(agents[i].arms[j], agents[i].arms);
           // println(b);
           joinArms(agents[i].arms, j);
@@ -118,27 +120,27 @@ class PointAgent {
     applyForce(result.mult(cohesionWeight / joinedNumber));
   }
 
-  void avoidance(K_Agent[] agents) {
-    PVector result = new PVector(0, 0, 0);
-    int neighbourCount = 0;
-    for (int i = 0; i < agents.length; i++) {
-      for (int j = 0; j < agents[i].arms.length; j++) {
-        if (agents[i].moves && isNeighbour(agents[i].arms[j], agents[i].arms)) {
-          PointAgent agent = agents[i].arms[j];
-          result = result.add(agent.position);
-          neighbourCount++;
-        }
-      }
-    }
-    //    println(joinedNumber);
+  //void avoidance(K_Agent[] agents) {
+  //  PVector result = new PVector(0, 0, 0);
+  //  int neighbourCount = 0;
+  //  for (int i = 0; i < agents.length; i++) {
+  //    for (int j = 0; j < agents[i].arms.length; j++) {
+  //      if (agents[i].moves && isNeighbour(agents[i].arms[j], agents[i].arms)) {
+  //        PointAgent agent = agents[i].arms[j];
+  //        result = result.add(agent.position);
+  //        neighbourCount++;
+  //      }
+  //    }
+  //  }
+  //  //    println(joinedNumber);
 
-    if (neighbourCount > 0) {
-      result.mult(1.0f / neighbourCount);
-      result = result.sub(position);
-    }
-    result.mult(-1);
-    applyForce(result.mult(avoidanceWeight / joinedNumber));
-  }
+  //  if (neighbourCount > 0) {
+  //    result.mult(1.0f / neighbourCount);
+  //    result = result.sub(position);
+  //  }
+  //  result.mult(-1);
+  //  applyForce(result.mult(avoidanceWeight / joinedNumber));
+  //}
 
   boolean isNeighbour(PointAgent _p, PointAgent[] _arm) {
     boolean isFriend = false;

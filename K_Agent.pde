@@ -12,7 +12,7 @@ class K_Agent {
     origin = _origin;
     armAngle = radians(60);
     offSet = _offSet;
-    moves = true;
+    moves = false;
     init();
   }
   void init() {
